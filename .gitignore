@@ -4,3 +4,5 @@ venv
 # Python
 *.py[cod]
 *.so
+*.egg
+*.egg-log
