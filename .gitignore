@@ -1,0 +1,6 @@
+# My Configuration
+venv
+.idea
+# Python
+*.py[cod]
+*.so
