@@ -1,6 +1,7 @@
 # My Configuration
 venv
 .idea
+test.py
 # Python
 *.py[cod]
 *.so
