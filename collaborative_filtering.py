@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import pearsonr
+from copy import deepcopy
 
 import logging
 
@@ -30,21 +31,54 @@ class collabFilter(object):
     def __init__(self, dataset_path, users_num, items_num, corr_threshold=0.3,
                  nnbors=30):
         logger.info("Starting up the Recommender System...")
-        # Load rating data
         self.users_num = users_num
         self.items_num = items_num
         self.corr_threshold = corr_threshold
         self.nnbors = nnbors
-        self.dataset = load_data(dataset_path, self.users_num, self.items_num)  # user-item rating matrix
+        # Load user-item rating matrix
+        self.dataset = load_data(dataset_path, self.users_num, self.items_num)
         self.mean_rate = mean_rate(self.dataset)  # average rating of per user
 
-    def prediction(self, active_user, predict_item):
+    def model_evaluation(self):
+        uncovered = 0
+        user_copy = self.dataset[0].copy()
+        active_items = np.where(self.dataset[0] != 0)[0]
+        predict_vec = np.array([])
+        logger.info("Starting to evaluate model...")
+        for active_item in active_items:
+
+            # predict rating of active item given all the other ratings
+            self.dataset[0, active_item] = 0
+            predict = self.predict_user_item(0, active_item)
+            if np.isnan(predict):
+                # current item cannot be predicted
+                uncovered += 1
+
+            predict_vec = np.append(predict_vec, predict)
+
+            # restore the original data
+            self.dataset[0, active_item] = user_copy[active_item]
+
+        print(user_copy[active_items])
+        print(np.mean(np.abs(predict-user_copy[active_items])))
+
+    def predict_user(self, active_user):
+        ratings = deepcopy(self.dataset[active_user])
+        predict_items = np.where(ratings == 0)[0]
+        for predict_item in predict_items:
+            print(predict_item)
+            ratings[predict_item] = self.predict_user_item(active_user, predict_item)
+        return ratings
+
+    def predict_user_item(self, active_user, predict_item):
         # Calculate correlation/similarity between active user and the others
         corr = self.__pearson_corr(active_user)
 
         # Find neighborhood
         neighbors = self.__neighbor_select(corr, predict_item)
-
+        if neighbors.size == 0:
+            # if no neighbor user is available, rating cannot be predicted
+            return np.nan
         # Make prediction
         predict = sum((self.dataset[neighbors, predict_item] -
                        self.mean_rate[neighbors]) * corr[neighbors]) \
@@ -90,5 +124,7 @@ class collabFilter(object):
 
 
 if __name__ == '__main__':
-    a = collabFilter("./train.txt", 943, 1682)
-    print(a.prediction(1, 1))
+    recommender = collabFilter("./train.txt", 943, 1682)
+    recommender.model_evaluation()
+
+
