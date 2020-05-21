@@ -41,26 +41,36 @@ class collabFilter(object):
 
     def model_evaluation(self):
         uncovered = 0
-        user_copy = self.dataset[0].copy()
-        active_items = np.where(self.dataset[0] != 0)[0]
-        predict_vec = np.array([])
+        user_MAE = np.array([])
         logger.info("Starting to evaluate model...")
-        for active_item in active_items:
+        for active_user in range(self.users_num):
+            logger.info("Evaluating user %s...", active_user)
+            # save a copy for user's rating
+            user_copy = self.dataset[active_user].copy()
+            # find all rated items
+            active_items = np.where(self.dataset[active_user] != 0)[0]
 
-            # predict rating of active item given all the other ratings
-            self.dataset[0, active_item] = 0
-            predict = self.predict_user_item(0, active_item)
-            if np.isnan(predict):
-                # current item cannot be predicted
-                uncovered += 1
-
-            predict_vec = np.append(predict_vec, predict)
-
-            # restore the original data
-            self.dataset[0, active_item] = user_copy[active_item]
-
-        print(user_copy[active_items])
-        print(np.mean(np.abs(predict-user_copy[active_items])))
+            del_item_ids = np.array([])
+            predict_vec = np.array([])
+            for item_id, active_item in enumerate(active_items):
+                # predict rating of active item given all the other ratings
+                self.dataset[0, active_item] = 0
+                predict = self.predict_user_item(0, active_item)
+                if np.isnan(predict):
+                    # current item cannot be predicted
+                    uncovered += 1
+                    # the item is deleted to calculate MAE
+                    del_item_ids = np.append(del_item_ids, item_id)
+                else:
+                    # if prediction available
+                    predict_vec = np.append(predict_vec, predict)
+                # restore the original data
+                self.dataset[0, active_item] = user_copy[active_item]
+            rating_label = np.delete(active_items, del_item_ids)
+            print(user_copy[rating_label])
+            user_MAE = np.append(user_MAE, np.mean(np.abs(predict_vec - user_copy[rating_label])))
+            print(user_MAE[-1])
+        print("MAE: %s", np.mean(user_MAE))
 
     def predict_user(self, active_user):
         ratings = deepcopy(self.dataset[active_user])
