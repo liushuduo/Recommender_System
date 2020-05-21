@@ -57,7 +57,9 @@ def mean_rate(dataset):
 
 
 class collabFilter(object):
-
+    """
+    Implementation of collaborative filter.
+    """
     def __init__(self, dataset_path, users_num, items_num, corr_threshold=0.3,
                  nnbors=20):
         """
@@ -108,13 +110,14 @@ class collabFilter(object):
     def predict_all(self):
         """
         Make prediction of all unrated items. The prediction result is stored in self.prediction.
+        Available prediction is constrained in [1, 5]
         :return: none
         """
         uncovered = 0
         logger.info("Starting to predict ratings...")
         for active_user in range(self.users_num):
-            logger.info("Predicting user %s... Progress: %.2f%%" %
-                        (active_user, 100 * (active_user / self.users_num)))
+            if active_user % 30 == 0:
+                logger.info("Progress: %.2f%%" % (100 * (active_user / self.users_num)))
             rating = self.prediction[active_user]
             # select items to predict
             predict_items = np.where(rating == 0)[0]
@@ -123,7 +126,8 @@ class collabFilter(object):
                 if np.isnan(predict):
                     uncovered += 1
                 rating[predict_item] = predict
-        logger.info("All unrated items have been predicted! Number of uncovered items: %s" % uncovered)
+        logger.info("All unrated items have been predicted! Coverage: %.2f%%" %
+                    (100 * (1 - uncovered/(self.users_num*self.items_num))))
 
     def predict_user(self, active_user):
         """
@@ -180,7 +184,7 @@ class collabFilter(object):
     def predict_user_item(self, active_user, predict_item):
         """
         Predict the rating of predicted item for active user. If the prediction is not available,
-        it will be assigned zero.
+        it will be assigned zero. Prediction is constrained from 1 to 5.
         :param active_user: active user
         :param predict_item: item to predict
         :return: prediction
@@ -197,6 +201,8 @@ class collabFilter(object):
         predict = sum((self.dataset[neighbors, predict_item] -
                        self.mean_rate[neighbors]) * corr[neighbors]) \
                   / sum(corr[neighbors]) + self.mean_rate[active_user]
+        # Constrain prediction value
+        predict = np.clip(predict, 1, 5)
         return predict
 
     def __neighbor_select(self, corr, predict_item):
@@ -248,4 +254,3 @@ class collabFilter(object):
 
 if __name__ == '__main__':
     recommender = collabFilter("./train.txt", 943, 1682)
-    print(recommender.si)
