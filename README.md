@@ -1,6 +1,6 @@
 # Recommender System
 
-This is a python project for Data Mining class 2020 summer, which implements a recommender system via *user-based collaborative filtering*. You can refer to the [paper of Herlocker et al.][https://dl.acm.org/doi/pdf/10.1145/3130348.3130372] and the [paper of Breese et al.](https://arxiv.org/abs/1301.7363) for a comprehensive review on collaborative filtering. 
+This is a python project for Data Mining class 2020 summer, which implements a recommender system via *user-based collaborative filtering*. You can refer to the [paper of Herlocker et al.](https://dl.acm.org/doi/pdf/10.1145/3130348.3130372) and the [paper of Breese et al.](https://arxiv.org/abs/1301.7363) for a comprehensive review on collaborative filtering. 
 
 ## Install
 
@@ -24,12 +24,15 @@ User-based collaborative method can be separated into three steps.
 
 1. Weight all users with respect to similarity with the active user. Many metric can be used such Pearson Correlation, Spearman Correlation, and Vector Similarity. In this project we use the **Pearson Correlation**. The Pearson correlation is defined as 
 
-<img src="http://latex.codecogs.com/gif.latex?w_{a, u}=\frac{\sum_{i=1}^{m}\left(r_{a, i}-\bar{r}_{a}\right) *\left(r_{u, i}-\bar{r}_{u}\right)}{\sqrt{\sum_{i=1}^m(r_{a,i}-\bar{r}_a)} * \sqrt{\sum_{i=1}^m(r_{u,i}-\bar{r}_u)}}." />
+   <center><img src="http://latex.codecogs.com/gif.latex?w_{a, u}=\frac{\sum_{i=1}^{m}\left(r_{a, i}-\bar{r}_{a}\right) *\left(r_{u, i}-\bar{r}_{u}\right)}{\sqrt{\sum_{i=1}^m(r_{a,i}-\bar{r}_a)} * \sqrt{\sum_{i=1}^m(r_{u,i}-\bar{r}_u)}}." /></center>
 
 2. Select a subset of users to use as a set of predictors. This project combines **weight thresholding** with **best-n neighbors**, which can provide available predictions as much as possible.
+
 3. Normalize ratings and compute a prediction from a weighted combination of selected neighbors' ratings. In this project, the prediction is made using 
 
-<img src="http://latex.codecogs.com/gif.latex?p_{a, i}=\bar{r}_{a}+\frac{\sum_{u=1}^{n}\left(r_{u, i}-\bar{r}_{u}\right) * w_{a, u}}{\sum_{u=1}^{n} w_{a, u}}." />
+   <center><img src="http://latex.codecogs.com/gif.latex?p_{a, i}=\bar{r}_{a}+\frac{\sum_{u=1}^{n}\left(r_{u, i}-\bar{r}_{u}\right) * w_{a, u}}{\sum_{u=1}^{n} w_{a, u}}." /></center>
+
+   
 
 
 
